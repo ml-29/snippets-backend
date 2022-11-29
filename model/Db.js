@@ -1,11 +1,11 @@
 class Db {
     constructor(config){
-        this.devMode = config.dev;
+        this.fillWithMockData = config.fillWithMockData;
         this.Sequelize = require('sequelize');
         this.mockData = require('./mockData.js');
-        this.sequelize = new this.Sequelize(config.db.name, config.db.user, config.db.password, {
-            host: config.db.host,
-            dialect: config.db.dialect
+        this.sequelize = new this.Sequelize(config.name, config.user, config.password, {
+            host: config.host,
+            dialect: config.dialect
         });
         this.model = new (require('./Model.js'))(this.sequelize, this.Sequelize);
     }
@@ -45,7 +45,7 @@ class Db {
                 languages.push(language);
             });
         });
-        
+
         this.mockData.snippets.forEach((snippet) => {
             this.model.Snippet.create(snippet, {
                 include : [
@@ -71,11 +71,11 @@ class Db {
             process.exit(1);
         }
     }
-    
+
     async init() {
         await this.assertDatabaseConnectionOk();
-    
-        if(this.devMode){
+
+        if(this.fillWithMockData){
             await this.fill();
         }
     }

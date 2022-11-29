@@ -1,0 +1,10 @@
+api:
+    prettyPrintJsonResponse: false
+    port: 3000
+database:
+    host: 0.0.0.0
+    user: example_user
+    password: example_password
+    name: example_database_name
+    dialect: mysql
+    fillWithMockData: false

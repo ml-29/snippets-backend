@@ -1,17 +1,17 @@
-const config = require("./config.js");
+const req = require('require-yml');
+const config = req(['./config/default.yml', `./config/${process.env.NODE_ENV}.yml`]);
 const express = require('express');
 const cors = require('cors');
-const port = 3000;
+const port = config.api.port;
 const app = express();
 const bodyParser = require('body-parser');
-// const { default: Transaction } = require("sequelize/types/transaction.js");
-const db = new (require("./model/Db.js"))(config);
+const db = new (require("./model/Db.js"))(config.database);
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 //prettify JSON output if in dev mode
-if(config.dev){
+if(config.api.prettyPrintJsonResponse){
 	app.set('json spaces', 2);
 }
 

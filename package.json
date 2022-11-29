@@ -1,19 +1,25 @@
 {
-  "name": "knowledgebase-backend",
+  "name": "snippets-backend",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "dev": "set NODE_ENV=dev&& nodemon server.js",
+    "production": "export NODE_ENV=production && node server.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.20.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
     "express": "^4.18.1",
     "mysql2": "^2.3.3",
+    "require-yml": "^2.0.0",
     "sequelize": "^6.21.4"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
   }
 }
