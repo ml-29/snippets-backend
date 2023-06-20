@@ -1,10 +1,16 @@
 api:
-    prettyPrintJsonResponse: false
+    prettyPrintJsonResponse: true
     port: 3000
 database:
-    host: 0.0.0.0
-    user: example_user
-    password: example_password
-    name: example_database_name
+    host: 127.0.0.1
+    user: admin
+    password: admin_pw
+    name: database_name
     dialect: mysql
-    fillWithMockData: false
+    fillWithMockData: true
+JWT:
+    secret: 12345
+github:
+    clientId: abcde
+    clientSecret: abcde
+    redirectURI: http://localhost:8080

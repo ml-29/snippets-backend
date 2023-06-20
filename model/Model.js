@@ -74,6 +74,45 @@ class Model {
 			as: 'snippets',
 			through: this.SnippetTags
 		});
+
+		this.User = sequelize.define('User', {
+			username: {
+				type: Sequelize.STRING,
+				unique: true
+			},
+			email: {//TODO : allow to login with username or email
+				type: Sequelize.STRING,
+				unique: true
+			},
+			passwordHash: {
+				type: Sequelize.STRING
+			},
+			githubId: {
+				type: Sequelize.STRING,
+				unique: true
+			},
+			githubToken: {
+				type: Sequelize.STRING
+			},
+			githubRefreshToken: {//maybe delete later
+				type: Sequelize.STRING
+			},
+			avatar: {
+				type: Sequelize.STRING
+			},
+			loggedIn: {
+				type: Sequelize.BOOLEAN,
+				defaultValue: false
+			},
+			lastLogin: {
+				type: Sequelize.DATE
+			}
+		});
+		this.User.hasMany(this.Snippet, {
+			as: 'snippets',
+			onDelete: 'CASCADE'
+		});
+		this.Snippet.belongsTo(this.User);
 	}
 }
 module.exports = Model;

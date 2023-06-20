@@ -20,17 +20,17 @@ var languages = [
 	{ name : 'PHP'},
 	{ name : 'HTML/CSS'},
 	{ name : 'Java'},
-	{ name : 'JavaScript'},
+	{ name : 'JS'},
 	{ name : 'Python'}
 ];
 
 var tags = [
-	{ name : 'first'},
-	{ name : 'second'},
-	{ name : 'third'},
-	{ name : 'PHP'},
-	{ name : 'JavaScript'},
-	{ name : 'CSS'}
+	{ name : 'Aaa'},
+	{ name : 'Bbb'},
+	{ name : 'Ccc'},
+	{ name : 'Ddd'},
+	{ name : 'Eee'},
+	{ name : 'Fff'}
 ];
 
 var snippets = [
@@ -60,4 +60,20 @@ var snippets = [
 		parts : snippetParts
 	}
 ];
-module.exports = {snippets : snippets, tags: tags, languages : languages};
+
+var users = [
+	{
+		username: 'test UFO',
+    passwordHash: '$2b$10$/SRuWbIIBpkI3rAUVzmHbOTg2zhOdkpyfTSM4U0JbqcjUrzuoYNO.',
+		email: 'mail@test.com',
+		githubUsername: 'UFOcatcher'
+	},
+	{
+		username: 'test',
+    passwordHash: '$2b$10$/SRuWbIIBpkI3rAUVzmHbOTg2zhOdkpyfTSM4U0JbqcjUrzuoYNO.',
+		email: 'usertest@test.com',
+		githubUsername: ''
+	}
+];
+
+module.exports = {snippets : snippets, tags: tags, languages : languages, users: users};

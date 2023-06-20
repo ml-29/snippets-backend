@@ -1,4 +1,5 @@
 const req = require('require-yml');
+const fs = require('fs');
 const config = req(['./config/default.yml', `./config/${process.env.NODE_ENV}.yml`]);
 const express = require('express');
 const cors = require('cors');
@@ -6,9 +7,8 @@ const port = config.api.port;
 const app = express();
 const bodyParser = require('body-parser');
 const db = new (require("./model/Db.js"))(config.database);
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+const axios = require('axios');
+const { Octokit } = require("octokit");
 
 //prettify JSON output if in dev mode
 if(config.api.prettyPrintJsonResponse){
@@ -16,11 +16,296 @@ if(config.api.prettyPrintJsonResponse){
 }
 
 app.use(cors({
-	origin: '*'
+	origin: 'http://localhost:8080'
 }));
 
-app.get('/snippets', function(req, res) {
+app.use(function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
+  res.header('Access-Control-Allow-Credentials', true);
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
+
+/* -- SESSION SUPPORT -- */
+
+app.use(db.session);
+
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const CustomStrategy = require('passport-custom');
+const JWTStrategy = require('passport-jwt').Strategy;
+const ExtractJWT = require('passport-jwt').ExtractJwt;
+const jwt = require('jsonwebtoken');
+
+const bcrypt = require('bcrypt');
+
+app.use(passport.authenticate('session'));
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+function hashPassword(password){
+  return bcrypt.hashSync(password, 10);
+}
+
+function checkPassword(hash, pw){
+	return bcrypt.compareSync(pw, hash);
+}
+
+function createToken(user){
+	return jwt.sign(
+		{
+			id: user.id,
+			username: user.username,
+			email: user.email,
+			lastLogin: user.lastLogin
+		},
+		config.JWT.secret
+	);
+}
+
+async function login(userId){
+  try{
+    await db.model.User.update(
+      {
+        lastLogin: db.sequelize.fn('NOW'),
+        loggedIn: true
+      },
+      {
+        where: { id : userId }
+      }
+    );
+    
+    const user = await db.model.User.findOne(
+    	{
+      	where: {id: userId},
+    	}
+    );
+    
+    var token = createToken(user);
+    
+    return {
+      user: user.dataValues,
+      token: token
+    };
+  }catch{
+    return false;
+  }
+}
+
+async function logout(userId){
+  try{
+    await db.model.User.update(
+      {
+        lastLogin: db.sequelize.fn('NOW'),
+        loggedIn: false
+      },
+      {
+        where: {id : userId}
+      }
+    );
+    return true;
+  }catch{
+    return false;
+  }
+}
+
+// passport.use(
+// 	'github-token',
+// 	new CustomStrategy(async function(req, done) {
+// 		//TODO: try to get user info through their token
+// 		//TODO: the app should be told to ask for a github login if the token is expired
+// 		//TODO: update user login status
+
+// 		var octokit = new Octokit({ auth: user.githubToken });
+// 		//try to authenticate as github user
+// 		var github_user = await octokit.request("GET /user", {
+// 			headers: {
+// 				authorization: user.githubToken
+// 			}
+// 		});
+// 		if(github_user){
+// 			user.githubProfile = github_user.data;
+// 		}else{//if the authentication fails, the user will be asked to login again
+// 			user.askToLogin = true;
+// 		}
+//     User.findOne({
+//       username: req.body.username
+//     }, function (err, user) {
+//       done(err, user);
+//     });
+//   }
+// ));
+
+passport.use(
+  'login',
+  new LocalStrategy(
+    {
+      usernameField: 'username',
+      passwordField: 'password'
+    },
+    async (username, password, done) => {
+  		try {
+  			const user = await db.model.User.findOne({
+  				where: {
+  					username : username
+  				}
+  			});
+        
+  			if(user && checkPassword(user.passwordHash, password)){
+  				const profileAndToken = await login(user.dataValues.id);
+  				//TODO connect additional accounts (github etc.)
+  				return done(null, profileAndToken);//return user profile + their token
+  			}else{
+  			  return done(null, false);
+  			}
+  		}catch(err){
+  			return done(null, false);
+  		}
+    }
+  )
+);
+
+passport.use(
+  'sign-up',
+  new LocalStrategy(
+    {
+      usernameField: 'username',
+      passwordField: 'password',
+      passReqToCallback: true
+    },
+    async (req, username, password, done) => {
+			try {
+				const user = await db.model.User.create(
+					{
+						username: username,
+						email: req.body.email,
+						passwordHash: hashPassword(password)
+					}
+				);
+				
+				if(user){
+					const profileAndToken = await login(user.id);
+					//TODO connect additional accounts (github etc.)
+					return done(null, profileAndToken);//return user profile + their token
+				}else{
+					return done(null, false);
+				}
+  		}catch(err){
+  			return done(null, false);
+  		}
+    }
+  )
+);
+
+passport.use(
+	'jwt',
+  new JWTStrategy(
+    {
+      secretOrKey: config.JWT.secret,
+      jwtFromRequest: ExtractJWT.fromUrlQueryParameter('token')
+    },
+    async (token, done) => {
+      try {
+      	const profileAndToken = await login(token.id);
+        return done(null, profileAndToken);
+      } catch (error) {
+        done(error);
+      }
+    }
+  )
+);
+
+app.post('/login', passport.authorize('login'), function(req, res) {
+  res.json(req.account);
+});
+
+app.post('/logout/:id', passport.authorize('jwt', { session: false }), async function(req, res, next) {
+	const result = await logout(req.params.id);
+  if(result){
+  	req.logout(function(err) {
+	    if (err) { return next(err); }
+	    res.status(500).json({error : 'could not log out'});
+	  });
+    res.json({message : 'logged out'});
+  }else{
+    res.status(500).json({error : 'could not log out'});
+  }
+});
+
+app.post('/sign-up', passport.authorize('sign-up'), function(req, res) {
+  res.json(req.account);
+  //res.json({'ok' : 'ok'});
+});
+
+//TODO NEXT : simple request with token : https://docs.github.com/fr/rest/gists/gists?apiVersion=2022-11-28
+app.post('/github-login', async function(req, res){
+	//initiate github login to receive a token
+	try {
+		var github_response = await axios.post('https://github.com/login/oauth/access_token', {
+			client_id: config.github.clientId,
+			client_secret: config.github.clientSecret,
+			code: req.body.code,
+			redirect_uri: config.github.redirectURI
+		}, {
+			headers: {
+				'Content-Type': 'application/json',
+				'Accept': 'application/json'
+			}
+		});
+
+		//TODO: sav github token in the database
+		var github_token = github_response.data.access_token;
+		
+		//obtain, store/update and send github user data
+		var octokit = new Octokit({ auth: github_token });
+		
+		var github_user = await octokit.request("GET /user", {
+			headers: {
+				authorization: github_token
+			}
+		});
+
+		var [user, created] = await db.model.User.findOrCreate({
+	    where: {
+	      githubId : github_user.data.id
+	    }
+		});
+		
+		await db.model.User.update(
+			{
+				githubToken: github_token
+			},
+			{
+				where: {
+					id: user.id
+				}
+			}
+		);
+		
+		const profileAndToken = await login(user.dataValues.id);
+		
+		profileAndToken.user.githubProfile = github_user.data;
+		
+		// const gists = await octokit.request('GET /gists', {
+		// 	headers: {
+		// 		authorization: github_token
+		// 	}
+		// });
+
+		res.json(profileAndToken);
+	}catch(error){
+		res.status(500).json({error : 'error'});
+	}
+});
+
+/* -- CRUD routes -- */
+
+app.get('/snippets', passport.authorize('jwt', { session: false }), function(req, res) {
 	db.model.Snippet.findAll({
+		where: {
+			UserId: req.account.id
+		},
 		include: [
 			{
 				model: db.model.SnippetPart,
@@ -39,14 +324,12 @@ app.get('/snippets', function(req, res) {
 		]
 	}).then((results) => {
 		res.json(results);
-		// expected output: "Success!"
 	}).catch(function(error){
-		// error
 		res.status(500).json({error : error});
 	});
 });
 
-app.put('/snippet', async function(req, res) {
+app.put('/snippet', passport.authorize('jwt', { session: false }), async function(req, res) {
 	const data = req.body;
 
 	const t = await db.sequelize.transaction();
@@ -60,7 +343,10 @@ app.put('/snippet', async function(req, res) {
 				parts: data.parts
 			},
 			{
-				where: {id : data.id},
+				where: {
+					id : data.id,
+					UserId: req.account.id
+				},
 				transaction: t
 			}
 		);
@@ -81,7 +367,6 @@ app.put('/snippet', async function(req, res) {
 		await Promise.all(data.parts.map(async (part) => {
 			let partId = part.id || null;
 			let newPart = false;
-			console.log(partId);
 			if(!partId){//the part needs to be created
 				const p = await db.model.SnippetPart.create(
 					{
@@ -158,8 +443,6 @@ app.put('/snippet', async function(req, res) {
 					},
 					transaction: t
 				});
-			}else{
-				console.log(tag.name + ' should not be removed');
 			}
 		}));
 
@@ -191,7 +474,7 @@ app.put('/snippet', async function(req, res) {
 		res.status(500).json({error : error});
 	}
 });
-app.post('/snippet', async function(req, res) {
+app.post('/snippet', passport.authorize('jwt', { session: false }), async function(req, res) {
 	const data = req.body;
 
 	const t = await db.sequelize.transaction();
@@ -202,7 +485,8 @@ app.post('/snippet', async function(req, res) {
 				starred: data.starred,
 				preview: data.preview,
 				description: data.description,
-				parts: data.parts
+				parts: data.parts,
+				UserId: req.account.id
 			},
 			{
 			include : [
@@ -257,9 +541,12 @@ app.post('/snippet', async function(req, res) {
 });
 
 
-app.delete('/snippet/:id', function(req, res) {
+app.delete('/snippet/:id', passport.authorize('jwt', { session: false }), function(req, res) {
 	db.model.Snippet.destroy({
-		where: { id: req.params.id }
+		where: {
+			id: req.params.id,
+			UserId: req.account.id
+		}
 	}).then((results) => {
 		res.json(results);
 	}).catch(function(error){
@@ -267,71 +554,66 @@ app.delete('/snippet/:id', function(req, res) {
 	});
 });
 
-app.get('/tags', function(req, res) {
-	db.model.Tag.findAll({
-		include: [
-			{
-				model: db.model.Snippet,
-				as: 'snippets'
-			}
-		]
-	}).then((results) => {
+app.get('/tags', passport.authorize('jwt', { session: false }), async function(req, res) {
+	try{
+		var results = await db.model.Tag.findAll({
+			include: [
+				{
+					model: db.model.Snippet,
+					as: 'snippets',
+					required: true,
+					where: {
+						UserId: req.account.id
+					}
+				}
+			]
+		});
+		
+		results.forEach(function(t){
+			t.dataValues.nbSnippets = t.snippets.length;
+		});
+		
 		res.json(results);
-		// expected output: "Success!"
-	}).catch(function(error){
-		// error
+	}catch(error){
 		res.status(500).json({error : error});
-	});
+	}
 });
 
-app.get('/languages', function(req, res) {
-	db.model.Language.findAll({
-		/*attributes: {
-		include: [[Sequelize.fn("COUNT", Sequelize.col("sensors.id")), "nbSnippets"]]
-		}*/
-	}).then((results) => {
+app.get('/languages', passport.authorize('jwt', { session: false }), async function(req, res) {
+	try{
+		var results = await db.model.Language.findAll({
+			include: [
+	      {
+	      	model: db.model.SnippetPart,
+	      	required: true,
+	        include: [
+	        	{
+	        		model: db.model.Snippet,
+	        		required: true,
+	        		where: {
+								UserId: req.account.id
+							}
+	        	}
+	        ]
+	      }
+	    ]
+		});
+		
+		results.forEach(function(l){
+			var snippetIds = [];
+			l['SnippetParts'].forEach(function(part){
+				var id = part['Snippet']['id'];
+				if(snippetIds.indexOf(id) === -1){
+					snippetIds.push(id);
+				}
+			})
+			l.dataValues.nbSnippets = snippetIds.length;
+		});
+		
 		res.json(results);
-		// expected output: "Success!"
-	}).catch(function(error){
-		// error
+	}catch(error){
 		res.status(500).json({error : error});
-	});
-});
-
-/*app.get('/languages', function(req, res) {
-  db.model.Language.findAll({
-    include: [
-      {
-        model: db.model.SnippetPart,
-        as: 'snip',
-        where: {
-          languageId : {$col: 'Language.id'}
-        }
-      }
-    ]
-  }).then((results) => {
-    res.json(results);
-    // expected output: "Success!"
-  }).catch(function(error){
-    // error
-    res.status(500).json({error : error});
-  });
-});*/
-
-app.get('/snippetparts', function(req, res) {
-	db.model.SnippetPart.findAll({
-		include: [
-			{
-				model: db.model.Language
-			}
-		]
-	}).then((results) => {
-		res.json(results);
-		// expected output: "Success!"
-	}).catch(function(error){
-		// error
-		res.status(500).json({error : error});
-	});
+	}
 });
 
 function init(){
