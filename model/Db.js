@@ -70,12 +70,14 @@ class Db {
 			});
 	
 			await Promise.all(this.mockData.snippets.map(async (snippet) => {
-				await this.model.Snippet.create(snippet, {
+				var snip = snippet;
+				snip.parts = getRandom(this.mockData.snippetParts, 2);
+				await this.model.Snippet.create(snip, {
 					include : [
 						{model : this.model.SnippetPart, as: 'parts'}
 					]
 				}).then((snippet) => {
-					snippet.addTags(getRandom(tags, 3));
+					snippet.addTags(getRandom(tags, 2));
 					snippet.parts.forEach((part) => {
 						var lang = languages.find(l => l.name == part.title);
 						part.setLanguage(lang.id);
@@ -87,7 +89,10 @@ class Db {
 	
 			this.mockData.users.forEach((user) => {
 			 this.model.User.create(user).then((user) => {
-				user.addSnippets(getRandom(snippets, 2));
+				// user.addSnippets(getRandom(snippets, 4));
+				if(user.username == 'test'){
+					user.addSnippets(snippets);
+				}
 			 });
 			});
 		}catch(error){

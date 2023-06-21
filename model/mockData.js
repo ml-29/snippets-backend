@@ -37,27 +37,27 @@ var snippets = [
 	{
 		title: 'bTest 1',
 		preview: "console.log('test 1');",
-		description: 'test 1 description with **bold text**',
-		parts : snippetParts
+		description: 'test 1 description with **bold text**'
+		// parts : snippetParts
 	},
 	{
 		title: 'aTest 2',
 		preview: "console.log('test 2');",
 		description: 'test 2 description with **bold text**',
 		starred: true,
-		parts : snippetParts
+		// parts : snippetParts
 	},
 	{
 		title: 'cTest 3',
 		preview: "console.log('test 3');",
-		description: 'test 3 description with **bold text**',
-		parts : snippetParts
+		description: 'test 3 description with **bold text**'
+		// parts : snippetParts
 	},
 	{
 		title: 'dTest 4',
 		preview: "console.log('test 4');",
-		description: 'test 4 description with **bold text**',
-		parts : snippetParts
+		description: 'test 4 description with **bold text**'
+		// parts : snippetParts
 	}
 ];
 
@@ -76,4 +76,4 @@ var users = [
 	}
 ];
 
-module.exports = {snippets : snippets, tags: tags, languages : languages, users: users};
+module.exports = {snippets : snippets, snippetParts : snippetParts, tags: tags, languages : languages, users: users};

@@ -304,7 +304,7 @@ app.post('/github-login', async function(req, res){
 app.get('/snippets', passport.authorize('jwt', { session: false }), function(req, res) {
 	db.model.Snippet.findAll({
 		where: {
-			UserId: req.account.id
+			UserId: req.account.user.id
 		},
 		include: [
 			{
@@ -345,7 +345,7 @@ app.put('/snippet', passport.authorize('jwt', { session: false }), async functio
 			{
 				where: {
 					id : data.id,
-					UserId: req.account.id
+					UserId: req.account.user.id
 				},
 				transaction: t
 			}
@@ -486,7 +486,7 @@ app.post('/snippet', passport.authorize('jwt', { session: false }), async functi
 				preview: data.preview,
 				description: data.description,
 				parts: data.parts,
-				UserId: req.account.id
+				UserId: req.account.user.id
 			},
 			{
 			include : [
@@ -545,7 +545,7 @@ app.delete('/snippet/:id', passport.authorize('jwt', { session: false }), functi
 	db.model.Snippet.destroy({
 		where: {
 			id: req.params.id,
-			UserId: req.account.id
+			UserId: req.account.user.id
 		}
 	}).then((results) => {
 		res.json(results);
@@ -563,7 +563,7 @@ app.get('/tags', passport.authorize('jwt', { session: false }), async function(r
 					as: 'snippets',
 					required: true,
 					where: {
-						UserId: req.account.id
+						UserId: req.account.user.id
 					}
 				}
 			]
@@ -591,7 +591,7 @@ app.get('/languages', passport.authorize('jwt', { session: false }), async funct
 	        		model: db.model.Snippet,
 	        		required: true,
 	        		where: {
-								UserId: req.account.id
+								UserId: req.account.user.id
 							}
 	        	}
 	        ]
