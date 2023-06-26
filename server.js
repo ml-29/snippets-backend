@@ -301,6 +301,10 @@ app.post('/github-login', async function(req, res){
 
 /* -- CRUD routes -- */
 
+app.get('/user', passport.authorize('jwt'), function(req, res) {
+  res.json(req.account);
+});
+
 app.get('/snippets', passport.authorize('jwt', { session: false }), function(req, res) {
 	db.model.Snippet.findAll({
 		where: {
