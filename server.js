@@ -76,16 +76,60 @@ async function login(userId){
       }
     );
     
-    const user = await db.model.User.findOne(
+    const u = await db.model.User.findOne(
     	{
       	where: {id: userId},
     	}
     );
     
+    var user = u.dataValues;
+    
+    console.log(user);
+		if(user.githubRefreshToken){
+			var github_response = await axios.post('https://github.com/login/oauth/access_token', {
+				client_id: config.github.clientId,
+				client_secret: config.github.clientSecret,
+				grant_type: 'refresh_token',
+				refresh_token: user.githubRefreshToken
+			}, {
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json'
+				}
+			});
+			
+			await db.model.User.update(
+				{
+					githubToken: github_response.data.access_token,
+					githubRefreshToken: github_response.data.refresh_token
+				},
+				{
+					where: { id : userId }
+				}
+			);
+			
+			user = await db.model.User.findOne(
+	    	{
+	      	where: {id: userId},
+	    	}
+	    );
+	    user = user.dataValues;
+			
+			var octokit = new Octokit({ auth: user.githubToken });
+
+			var githubProfile = await octokit.request("GET /user", {
+				headers: {
+					authorization: user.githubToken
+				}
+			});
+			
+			user.githubProfile = githubProfile.data;
+		}
+    
     var token = createToken(user);
     
     return {
-      user: user.dataValues,
+      user: user,
       token: token
     };
   }catch{
@@ -154,7 +198,7 @@ passport.use(
         
   			if(user && checkPassword(user.passwordHash, password)){
   				const profileAndToken = await login(user.dataValues.id);
-  				//TODO connect additional accounts (github etc.)
+  				
   				return done(null, profileAndToken);//return user profile + their token
   			}else{
   			  return done(null, false);
@@ -186,7 +230,6 @@ passport.use(
 				
 				if(user){
 					const profileAndToken = await login(user.id);
-					//TODO connect additional accounts (github etc.)
 					return done(null, profileAndToken);//return user profile + their token
 				}else{
 					return done(null, false);
@@ -254,10 +297,8 @@ app.post('/github-login', async function(req, res){
 			}
 		});
 
-		//TODO: sav github token in the database
 		var github_token = github_response.data.access_token;
 		
-		//obtain, store/update and send github user data
 		var octokit = new Octokit({ auth: github_token });
 		
 		var github_user = await octokit.request("GET /user", {
@@ -274,18 +315,17 @@ app.post('/github-login', async function(req, res){
 		
 		await db.model.User.update(
 			{
-				githubToken: github_token
+				githubToken: github_token,
+				githubRefreshToken: github_response.data.refresh_token
 			},
 			{
 				where: {
-					id: user.id
+					id: user.dataValues.id
 				}
 			}
 		);
 		
 		const profileAndToken = await login(user.dataValues.id);
-		
-		profileAndToken.user.githubProfile = github_user.data;
 		
 		// const gists = await octokit.request('GET /gists', {
 		// 	headers: {
@@ -306,6 +346,8 @@ app.get('/user', passport.authorize('jwt'), function(req, res) {
 });
 
 app.get('/snippets', passport.authorize('jwt', { session: false }), function(req, res) {
+	
+	//TODO : query gists if github account is present
 	db.model.Snippet.findAll({
 		where: {
 			UserId: req.account.user.id
