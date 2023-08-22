@@ -84,7 +84,6 @@ async function login(userId){
     
     var user = u.dataValues;
     
-    console.log(user);
 		if(user.githubRefreshToken){
 			var github_response = await axios.post('https://github.com/login/oauth/access_token', {
 				client_id: config.github.clientId,
@@ -326,12 +325,6 @@ app.post('/github-login', async function(req, res){
 		);
 		
 		const profileAndToken = await login(user.dataValues.id);
-		
-		// const gists = await octokit.request('GET /gists', {
-		// 	headers: {
-		// 		authorization: github_token
-		// 	}
-		// });
 
 		res.json(profileAndToken);
 	}catch(error){
@@ -344,6 +337,20 @@ app.post('/github-login', async function(req, res){
 app.get('/user', passport.authorize('jwt'), function(req, res) {
   res.json(req.account);
 });
+
+// app.get('/gists', passport.authorize('jwt', { session: false }), function(req, res) {
+// 	try{
+// 		const gists = await octokit.request('GET /gists', {
+// 			headers: {
+// 				authorization: req.account.githubToken
+// 			}
+// 		});
+		
+// 		res.json(gists);
+// 	}catch(error){
+// 		res.status(500).json({error : error});
+// 	}
+// });
 
 app.get('/snippets', passport.authorize('jwt', { session: false }), function(req, res) {
 	

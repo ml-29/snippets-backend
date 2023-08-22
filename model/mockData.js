@@ -64,13 +64,13 @@ var snippets = [
 var users = [
 	{
 		username: 'test UFO',
-    passwordHash: '$2b$10$/SRuWbIIBpkI3rAUVzmHbOTg2zhOdkpyfTSM4U0JbqcjUrzuoYNO.',
+    passwordHash: '$2b$10$lHuDgPYu5W8vo7wGemrWoOZDmdvPjrWx83C6cd/Toqut4E7CITY1i',
 		email: 'mail@test.com',
 		githubUsername: 'UFOcatcher'
 	},
 	{
 		username: 'test',
-    passwordHash: '$2b$10$/SRuWbIIBpkI3rAUVzmHbOTg2zhOdkpyfTSM4U0JbqcjUrzuoYNO.',
+    passwordHash: '$2b$10$lHuDgPYu5W8vo7wGemrWoOZDmdvPjrWx83C6cd/Toqut4E7CITY1i',
 		email: 'usertest@test.com',
 		githubUsername: ''
 	}
