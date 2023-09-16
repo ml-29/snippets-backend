@@ -20,6 +20,12 @@ class Model {
 		this.SnippetPart.belongsTo(this.Language);
 
 		this.Snippet = sequelize.define('Snippet', {
+			id: {
+				type: Sequelize.UUID,
+				defaultValue: Sequelize.UUIDV4,
+				allowNull: false,
+				primaryKey: true
+			},
 			title: {
 				type: Sequelize.STRING,
 				allowNull: false
@@ -29,11 +35,17 @@ class Model {
 				allowNull: false,
 				defaultValue: false
 			},
-			preview: {
-				type: Sequelize.STRING
+			'private': {
+				type: Sequelize.BOOLEAN,
+				allowNull: false,
+				defaultValue: false
 			},
+			// preview: {
+			// 	type: Sequelize.STRING
+			// },
 			description: {
-				type: Sequelize.TEXT
+				type: Sequelize.TEXT,
+				allowNull: true
 			}
 		});
 		this.Snippet.hasMany(this.SnippetPart, {

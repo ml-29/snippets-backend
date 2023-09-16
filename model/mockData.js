@@ -35,27 +35,28 @@ var tags = [
 
 var snippets = [
 	{
-		title: 'bTest 1',
-		preview: "console.log('test 1');",
-		description: 'test 1 description with **bold text**'
+		title: 'Optional description',
+		// preview: "console.log('test 1');",
+		description: ''
 		// parts : snippetParts
 	},
 	{
-		title: 'aTest 2',
-		preview: "console.log('test 2');",
+		title: 'Public gist.test.py',
+		// preview: "console.log('test 2');",
 		description: 'test 2 description with **bold text**',
 		starred: true,
 		// parts : snippetParts
 	},
 	{
-		title: 'cTest 3',
-		preview: "console.log('test 3');",
+		title: 'Private snippet',
+		'private' : true,
+		// preview: "console.log('test 3');",
 		description: 'test 3 description with **bold text**'
 		// parts : snippetParts
 	},
 	{
 		title: 'dTest 4',
-		preview: "console.log('test 4');",
+		// preview: "console.log('test 4');",
 		description: 'test 4 description with **bold text**'
 		// parts : snippetParts
 	}

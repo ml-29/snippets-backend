@@ -277,7 +277,6 @@ app.post('/logout/:id', passport.authorize('jwt', { session: false }), async fun
 
 app.post('/sign-up', passport.authorize('sign-up'), function(req, res) {
   res.json(req.account);
-  //res.json({'ok' : 'ok'});
 });
 
 //TODO NEXT : simple request with token : https://docs.github.com/fr/rest/gists/gists?apiVersion=2022-11-28
@@ -369,6 +368,10 @@ app.get('/snippets', passport.authorize('jwt', { session: false }), function(req
 						as: 'language'*/
 					}
 				]
+			},
+			{
+				model : db.model.User,
+				attributes : ['username', 'avatar']
 			},
 			{
 				model : db.model.Tag,
