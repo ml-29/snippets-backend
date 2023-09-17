@@ -1,3 +1,5 @@
 node_modules
 /config/*
 !/config/default.yml
+sever_old2.js
+server_old.js
