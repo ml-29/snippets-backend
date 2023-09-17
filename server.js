@@ -396,7 +396,8 @@ app.put('/snippet', passport.authorize('jwt', { session: false }), async functio
 				starred: data.starred,
 				preview: data.preview,
 				description: data.description,
-				parts: data.parts
+				parts: data.parts,
+				'private': data.private
 			},
 			{
 				where: {
@@ -546,6 +547,7 @@ app.post('/snippet', passport.authorize('jwt', { session: false }), async functi
 			{
 				title: data.title,
 				starred: data.starred,
+				'private': data.private,
 				preview: data.preview,
 				description: data.description,
 				parts: data.parts,
