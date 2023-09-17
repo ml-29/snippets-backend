@@ -406,7 +406,7 @@ app.put('/snippet', passport.authorize('jwt', { session: false }), async functio
 				transaction: t
 			}
 		);
-
+		
 		var partsToKeepIds = [];
 
 		const snippet = await db.model.Snippet.findByPk(data.id, {
@@ -451,7 +451,7 @@ app.put('/snippet', passport.authorize('jwt', { session: false }), async functio
 			const savedPart = await db.model.SnippetPart.findByPk(partId, { transaction: t });
 			//bind language to part
 			const [row, created] = await db.model.Language.findOrCreate({
-				where: {name : part.language},
+				where: {name : part.Language.name},
 				transaction: t
 			});
 			await savedPart.setLanguage(row.id, {transaction: t});
@@ -459,6 +459,7 @@ app.put('/snippet', passport.authorize('jwt', { session: false }), async functio
 				await snippet.addPart(savedPart, {transaction: t});
 			}
 			partsToKeepIds.push(partId);
+
 		}));
 
 		//delete the parts that were removed from the list
@@ -473,11 +474,11 @@ app.put('/snippet', passport.authorize('jwt', { session: false }), async functio
 			},
 			transaction: t
 		});
-
+		
 		//find or create + link all the tags in list
 		await Promise.all(data.tags.map(async (tag) => {
 			const [row, created] = await db.model.Tag.findOrCreate({
-				where: { name: tag },
+				where: { name: tag.name },
 				tansaction: t
 			});
 			await db.model.SnippetTags.findOrCreate({
@@ -489,9 +490,15 @@ app.put('/snippet', passport.authorize('jwt', { session: false }), async functio
 			});
 		}));
 
+		var tags = structuredClone(data.tags);
+		
+		tags = tags.map((t) => {
+			return t.name;
+		});
+		
 		//detach removed tags (tags that are linked to the snippet but absent from provided tag list)
 		await Promise.all(snippet.tags.map(async (tag) => {
-			if(!data.tags.includes(tag.name)){
+			if(!tags.includes(tag.name)){
 				await db.model.SnippetTags.destroy({
 					where: {
 						SnippetId : snippet.id,
@@ -521,7 +528,7 @@ app.put('/snippet', passport.authorize('jwt', { session: false }), async functio
 			],
 			transaction: t
 		});
-
+		
 		await t.commit();
 		res.json(result);
 
