@@ -16,11 +16,11 @@ if(config.api.prettyPrintJsonResponse){
 }
 
 app.use(cors({
-	origin: 'http://localhost:8080'
+	origin: config.frontend_url
 }));
 
 app.use(function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
+  res.header('Access-Control-Allow-Origin', config.frontend_url);
   res.header('Access-Control-Allow-Credentials', true);
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
@@ -37,7 +37,7 @@ const JWTStrategy = require('passport-jwt').Strategy;
 const ExtractJWT = require('passport-jwt').ExtractJwt;
 const jwt = require('jsonwebtoken');
 
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 app.use(passport.authenticate('session'));
 
@@ -350,6 +350,41 @@ app.get('/user', passport.authorize('jwt'), function(req, res) {
 // 		res.status(500).json({error : error});
 // 	}
 // });
+
+app.get('/snippet/:id', function(req, res) {
+	
+	//TODO : query gists if github account is present
+	db.model.Snippet.findOne({
+		where: {
+			id: req.params.id,
+			'private': false
+		},
+		include: [
+			{
+				model: db.model.SnippetPart,
+				as: 'parts',
+				include: [
+					{
+						model: db.model.Language/*,
+						as: 'language'*/
+					}
+				]
+			},
+			{
+				model : db.model.User,
+				attributes : ['username', 'avatar']
+			},
+			{
+				model : db.model.Tag,
+				as : 'tags'
+			}
+		]
+	}).then((results) => {
+		res.json(results);
+	}).catch(function(error){
+		res.status(500).json({error : error});
+	});
+});
 
 app.get('/snippets', passport.authorize('jwt', { session: false }), function(req, res) {
 	

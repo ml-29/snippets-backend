@@ -13,4 +13,5 @@ JWT:
 github:
     clientId: abcde
     clientSecret: abcde
-    redirectURI: http://localhost:8080
+    redirectURI: https://app.com/github-callback/
+frontend_url: https://app.com
