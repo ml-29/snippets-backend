@@ -10,6 +10,24 @@ const db = new (require("./model/Db.js"))(config.database);
 const axios = require('axios');
 const { Octokit } = require("octokit");
 
+const yaml = require('js-yaml');
+
+let default_snippets = null;
+// Get document, or throw exception on error
+try {
+  default_snippets = yaml.load(fs.readFileSync('default_data/user_created.yml', 'utf8'));
+  //add md file contents
+  default_snippets.map(async (s) => {
+  	s.parts.map((p)=>{
+  		p.content = fs.readFileSync('default_data/md_contents/' + p.content, 'utf8')
+  	});
+  });
+} catch (e) {
+  console.log(e);
+}
+
+//TODO: move default data insert here + empty DB setup of useless params
+
 //prettify JSON output if in dev mode
 if(config.api.prettyPrintJsonResponse){
 	app.set('json spaces', 2);
@@ -153,6 +171,55 @@ async function logout(userId){
   }
 }
 
+//TODO
+async function addDefaultSnippets(userId){
+	const t = await db.sequelize.transaction();
+	try{
+		await Promise.all(default_snippets.map(async (s) => {
+			//create the snippet
+			const snippet = await db.model.Snippet.create(
+				{
+					title: s.title,
+					starred: true,
+					'private': false,
+					parts: s.parts,
+					UserId: userId
+				},
+				{
+				include : [
+					{ model : db.model.SnippetPart, as: 'parts' }
+				],
+				transaction: t
+			});
+			
+			//create and link parts languages
+			await Promise.all(snippet.parts.map(async (part, index) => {
+				const [row, created] = await db.model.Language.findOrCreate({
+					where: {name : s.parts[index].language},
+					transaction: t
+				});
+				await part.setLanguage(row.id, {transaction: t});
+			}));
+			
+			//create and link all tags
+			await Promise.all(s.tags.map(async (tag) => {
+				const [row, created] = await db.model.Tag.findOrCreate({
+					where: { name : tag },
+					transaction: t
+				});
+				await snippet.addTag(row.id, {transaction: t});
+			}));
+		}));
+	
+		await t.commit();
+		return true;
+
+	}catch(error){
+		await t.rollback();
+		return false;
+	}
+}
+
 // passport.use(
 // 	'github-token',
 // 	new CustomStrategy(async function(req, done) {
@@ -228,6 +295,7 @@ passport.use(
 				);
 				
 				if(user){
+					await addDefaultSnippets(user.id);
 					const profileAndToken = await login(user.id);
 					return done(null, profileAndToken);//return user profile + their token
 				}else{
@@ -310,6 +378,8 @@ app.post('/github-login', async function(req, res){
 	      githubId : github_user.data.id
 	    }
 		});
+		
+		await addDefaultSnippets(user.dataValues.id);
 		
 		await db.model.User.update(
 			{

@@ -1,0 +1,16 @@
+- title: "Welcome !"
+  tags:
+    - "Welcome"
+  parts:
+    - title: "welcome.md"
+      content: "welcome.md"
+      language: "markdown"
+ 
+
+- title: "Getting started"
+  tags:
+    - "Getting started"
+  parts:
+    - title: "welcome.md"
+      content: "getting_started.md"
+      language: "markdown"
