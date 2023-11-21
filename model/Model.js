@@ -14,6 +14,9 @@ class Model {
 				type : Sequelize.STRING,
 				allowNull: false,
 				unique: true
+			},
+			aceEditorPlugin: {
+				type : Sequelize.STRING
 			}
 		});
 		this.Language.hasMany(this.SnippetPart);

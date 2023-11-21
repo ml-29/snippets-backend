@@ -79,7 +79,9 @@ class Db {
 				}).then((snippet) => {
 					snippet.addTags(getRandom(tags, 2));
 					snippet.parts.forEach((part) => {
-						var lang = languages.find(l => l.name == part.title);
+						var p = this.mockData.snippetParts.find((element) => element.title == part.title);
+						// var lang = languages.find(l => l.name == part.title);
+						var lang = languages.find((element) => element.name == p.language);
 						part.setLanguage(lang.id);
 						// part.setLanguage(getRandom(languages, 1)[0].id);
 					});
