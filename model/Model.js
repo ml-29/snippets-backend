@@ -15,7 +15,7 @@ class Model {
 				allowNull: false,
 				unique: true
 			},
-			aceEditorPlugin: {
+			aceEditorMode: {
 				type : Sequelize.STRING
 			}
 		});
