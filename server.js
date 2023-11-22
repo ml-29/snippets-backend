@@ -379,7 +379,9 @@ app.post('/github-login', async function(req, res){
 	    }
 		});
 		
-		await addDefaultSnippets(user.dataValues.id);
+		if(created){
+			await addDefaultSnippets(user.dataValues.id);
+		}
 		
 		await db.model.User.update(
 			{
