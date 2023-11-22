@@ -749,7 +749,7 @@ app.get('/tags', passport.authorize('jwt', { session: false }), async function(r
 	}
 });
 
-app.get('/languages', passport.authorize('jwt', { session: false }), async function(req, res) {
+app.get('/used-languages', passport.authorize('jwt', { session: false }), async function(req, res) {
 	try{
 		var results = await db.model.Language.findAll({
 			include: [
@@ -779,6 +779,16 @@ app.get('/languages', passport.authorize('jwt', { session: false }), async funct
 			})
 			l.dataValues.nbSnippets = snippetIds.length;
 		});
+		
+		res.json(results);
+	}catch(error){
+		res.status(500).json({error : error});
+	}
+});
+
+app.get('/languages', passport.authorize('jwt', { session: false }), async function(req, res) {
+	try{
+		var results = await db.model.Language.findAll();
 		
 		res.json(results);
 	}catch(error){
