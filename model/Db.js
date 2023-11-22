@@ -30,15 +30,21 @@ class Db {
 
 		// this.sessionStore.sync();
 	}
-
+	
+	async fillWithMinimalData(){
+		//drop db and add filler data
+		await this.sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
+		await this.sequelize.drop();
+		await this.sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
+		await this.sequelize.sync();
+		
+		await Promise.all(this.mockData.languages.map(async (language) => {
+			await this.model.Language.create(language);
+		}));
+	}
+	
 	async fill(){
 		try{
-			//drop db and add filler data
-			this.sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
-			await this.sequelize.drop();
-			this.sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
-			await this.sequelize.sync();
-	
 			function getRandom(arr, n) {
 				var result = new Array(n),
 					len = arr.length,
@@ -54,7 +60,7 @@ class Db {
 			}
 	
 			var tags = [];
-			var languages = [];
+			var languages = await this.model.Language.findAll();
 			var snippets = [];
 	
 			this.mockData.tags.forEach((tag) => {
@@ -62,13 +68,7 @@ class Db {
 					tags.push(tag);
 				});
 			});
-	
-			this.mockData.languages.forEach((language) => {
-				this.model.Language.create(language).then((language) => {
-					languages.push(language);
-				});
-			});
-	
+
 			await Promise.all(this.mockData.snippets.map(async (snippet) => {
 				var snip = snippet;
 				snip.parts = getRandom(this.mockData.snippetParts, 2);
@@ -117,6 +117,8 @@ class Db {
 	async init() {
 		await this.assertDatabaseConnectionOk();
 
+		await this.fillWithMinimalData();
+		
 		if(this.fillWithMockData){
 			await this.fill();
 		}
