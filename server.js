@@ -751,7 +751,7 @@ app.get('/tags', passport.authorize('jwt', { session: false }), async function(r
 	}
 });
 
-app.get('/used-languages', passport.authorize('jwt', { session: false }), async function(req, res) {
+app.get('/languages', passport.authorize('jwt', { session: false }), async function(req, res) {
 	try{
 		var results = await db.model.Language.findAll({
 			include: [
@@ -788,7 +788,7 @@ app.get('/used-languages', passport.authorize('jwt', { session: false }), async 
 	}
 });
 
-app.get('/languages', passport.authorize('jwt', { session: false }), async function(req, res) {
+app.get('/available-languages', passport.authorize('jwt', { session: false }), async function(req, res) {
 	try{
 		var results = await db.model.Language.findAll();
 		
