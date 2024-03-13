@@ -684,11 +684,7 @@ app.post('/snippet', passport.authorize('jwt', { session: false }), async functi
 		});
 
 		await Promise.all(snippet.parts.map(async (part, index) => {
-			const [row, created] = await db.model.Language.findOrCreate({
-				where: {name : data.parts[index].Language.name},
-				transaction: t
-			});
-			await part.setLanguage(row.id, {transaction: t});
+			await part.setLanguage(part.Language.id, {transaction: t});
 		}));
 
 		await Promise.all(data.tags.map(async (tag) => {
