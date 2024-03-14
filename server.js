@@ -802,7 +802,13 @@ app.get('/languages', passport.authorize('jwt', { session: false }), async funct
 
 app.get('/available-languages', passport.authorize('jwt', { session: false }), async function(req, res) {
 	try{
-		var results = await db.model.Language.findAll();
+		var results = await db.model.Language.findAll({
+			include: [
+	  		{
+	      	model: db.model.Extension
+	      }
+	    ]
+		});
 		
 		res.json(results);
 	}catch(error){

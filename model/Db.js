@@ -39,8 +39,30 @@ class Db {
 		await this.sequelize.sync();
 		
 		await Promise.all(this.mockData.languages.map(async (language) => {
-			await this.model.Language.create(language);
+			var cl = await this.model.Language.create(language);
+			await Promise.all(this.mockData.extensions.map(async (ext) => {
+				if(ext.name == language.name){
+					await Promise.all(ext.extensions.map(async (e) => {
+						var [ce, created] = await this.model.Extension.findOrCreate({
+							where: { name: e }
+						});
+						ce.setLanguage(cl.id);
+					}));
+				}
+			}));
 		}));
+
+		// const [row, created] = await db.model.Language.findOrCreate({
+		// 			where: {name : s.parts[index].language},
+		// 			transaction: t
+		// 		});
+		// 		await part.setLanguage(row.id, {transaction: t});
+
+		// //add extensions
+		// await Promise.all(this.mockData.extensions.map(async (extension) => {
+		// 	await this.model.Extension.create(language);
+		// }));
+
 	}
 	
 	async fill(){

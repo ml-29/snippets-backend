@@ -22,6 +22,16 @@ class Model {
 		this.Language.hasMany(this.SnippetPart);
 		this.SnippetPart.belongsTo(this.Language);
 
+		this.Extension = sequelize.define('Extension', {
+			name: {
+				type : Sequelize.STRING,
+				allowNull: false,
+				unique: true
+			}
+		});
+		this.Language.hasMany(this.Extension);
+		this.Extension.belongsTo(this.Language);
+
 		this.Snippet = sequelize.define('Snippet', {
 			id: {
 				type: Sequelize.UUID,
