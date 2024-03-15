@@ -673,18 +673,25 @@ app.post('/snippet', passport.authorize('jwt', { session: false }), async functi
 				'private': data.private,
 				preview: data.preview,
 				description: data.description,
-				parts: data.parts,
 				UserId: req.account.user.id
 			},
 			{
-			include : [
-				{ model : db.model.SnippetPart, as: 'parts' },
-			],
-			transaction: t
-		});
+				transaction: t
+			}
+		);
 
-		await Promise.all(snippet.parts.map(async (part, index) => {
-			await part.setLanguage(part.Language.id, {transaction: t});
+		await Promise.all(data.parts.map(async (part) => {
+			const p = await db.model.SnippetPart.create(
+				{
+					title: part.title,
+					content: part.content
+				},
+				{
+					transaction: t
+				}
+			);
+			await p.setLanguage(part.Language.id, {transaction: t});
+			await snippet.addPart(p, {transaction: t});
 		}));
 
 		await Promise.all(data.tags.map(async (tag) => {
