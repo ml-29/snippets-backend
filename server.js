@@ -453,8 +453,13 @@ app.get('/snippet/:id', function(req, res) {
 				as: 'parts',
 				include: [
 					{
-						model: db.model.Language/*,
+						model: db.model.Language,/*,
 						as: 'language'*/
+						include: [
+							{
+								model: db.model.Extension
+							}
+						]
 					}
 				]
 			},
@@ -487,8 +492,13 @@ app.get('/snippets', passport.authorize('jwt', { session: false }), function(req
 				as: 'parts',
 				include: [
 					{
-						model: db.model.Language/*,
+						model: db.model.Language,/*,
 						as: 'language'*/
+						include: [
+							{
+								model: db.model.Extension
+							}
+						]
 					}
 				]
 			},
