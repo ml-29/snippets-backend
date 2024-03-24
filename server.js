@@ -345,15 +345,16 @@ app.post('/logout/:id', passport.authorize('jwt', { session: false }), async fun
 
 app.delete('/user/:id', passport.authorize('jwt', { session: false }), async function(req, res, next) {
 	if(req.params.id == req.account.user.id){
-		await db.model.User.destroy({
-			where: {
-				id: req.params.id
-			}
-		}).then((results) => {
-			res.json(results);
-		}).catch(function(error){
+		try{
+			await db.model.User.destroy({
+				where: {
+					id: req.params.id
+				}
+			});
+			res.status(204).send();
+		}catch(error){
 			res.status(500).json({error : error});
-		});
+		}
 	}else{
 		res.status(500).json({error : 'could not delete account'});
 	}
@@ -749,7 +750,7 @@ app.delete('/snippet/:id', passport.authorize('jwt', { session: false }), functi
 			UserId: req.account.user.id
 		}
 	}).then((results) => {
-		res.json(results);
+		res.status(204).send();
 	}).catch(function(error){
 		res.status(500).json({error : error});
 	});
