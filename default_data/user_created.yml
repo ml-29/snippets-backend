@@ -1,12 +1,3 @@
-- title: "Welcome !"
-  tags:
-    - "Welcome"
-  parts:
-    - title: "welcome.md"
-      content: "welcome.md"
-      language: "markdown"
- 
-
 # - title: "Getting started"
 #   tags:
 #     - "Getting started"
@@ -14,3 +5,21 @@
 #     - title: "welcome.md"
 #       content: "getting_started.md"
 #       language: "markdown"
+
+- title: "Something new to learn"
+  description: "Concerning the beauty of programming"
+  tags:
+    - "learning"
+    - "dev"
+  parts:
+    - title: "introduction.md"
+      content: "inspiring.md"
+      language: "markdown"
+
+- title: "Welcome !"
+  tags:
+    - "Welcome"
+  parts:
+    - title: "welcome.md"
+      content: "welcome.md"
+      language: "markdown"

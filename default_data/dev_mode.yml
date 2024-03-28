@@ -1,0 +1,99 @@
+- title: "Welcome !"
+  tags:
+    - "Welcome"
+  parts:
+    - title: "welcome.md"
+      content: "welcome.md"
+      language: "markdown"
+
+# - title: "Getting started"
+#   tags:
+#     - "Getting started"
+#   parts:
+#     - title: "welcome.md"
+#       content: "getting_started.md"
+#       language: "markdown"
+
+- title: "Something new to learn"
+  description: "Concerning the beauty of programming"
+  tags:
+    - "learning"
+    - "dev"
+  parts:
+    - title: "introduction.md"
+      content: "inspiring.md"
+      language: "markdown"
+
+- title: "Vue Hello World"
+  description: "Smallest hello world boilerplate made with Vue 2"
+  tags:
+      - "VueJS"
+      - "Vue 2"
+      - "HTML"
+  parts:
+      - title: "App.vue"
+        content: "App.vue"
+        language: "html"
+
+- title: "Hello World in Python"
+  description: >
+    A simple Python program that prints "Hello, World!" to the console.
+  parts:
+      - title: "hello_world.py"
+        content: "hello_world.py"
+        language: "Python"
+  tags:
+    - "Python"
+    - "Hello World"
+    - "Printing"
+
+- title: "Calculate Factorial in Java"
+  description: "A Java program to calculate the factorial of a given number."
+  parts:
+      - title: "Factorial.java"
+        content: "Factorial.java"
+        language: "Java"
+  tags:
+    - "Java"
+    - "Factorial"
+    - "Mathematics"
+
+- title: "Reverse a String in C++"
+  description: "A C++ program that reverses a given string."
+  parts:
+      - title: "reverse_string.cpp"
+        content: "reverse_string.cpp"
+        language: "C/C++"
+  tags:
+    - "C++"
+    - "String Manipulation"
+
+- title: "FizzBuzz in JavaScript"
+  description: >
+    A JavaScript program that prints numbers from 1 to 100. For multiples of three, it prints "Fizz" instead of the number, and for multiples of five, it prints "Buzz". For numbers which are multiples of both three and five, it prints "FizzBuzz".
+  parts:
+      - title: "fizzbuzz.js"
+        content: "fizzbuzz.js"
+        language: "JavaScript"
+  tags:
+    - "JavaScript"
+    - "FizzBuzz"
+    - "Looping"
+
+- title: "Simple Web Page Example"
+  description: "A simple web page with JavaScript functionality, HTML structure, and CSS styling."
+  parts:
+      - title: "index.html"
+        content: "index.html"
+        language: "HTML"
+      - title: "script.js"
+        content: "script.js"
+        language: "JavaScript"
+      - title: "styles.css"
+        content: "styles.css"
+        language: "CSS"
+  tags:
+    - "Web Development"
+    - "JavaScript"
+    - "HTML"
+    - "CSS"
