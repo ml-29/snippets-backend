@@ -13,17 +13,25 @@ const { Octokit } = require("octokit");
 const yaml = require('js-yaml');
 
 let default_snippets = null;
+// let default_snippets = yaml.load(fs.readFileSync('default_data/user_created.yml', 'utf8'));
 // Get document, or throw exception on error
-try {
-  default_snippets = yaml.load(fs.readFileSync('default_data/user_created.yml', 'utf8'));
-  //add md file contents
-  default_snippets.map(async (s) => {
-  	s.parts.map((p)=>{
-  		p.content = fs.readFileSync('default_data/md_contents/' + p.content, 'utf8')
-  	});
-  });
-} catch (e) {
-  console.log(e);
+
+function loadDefaultSnippets(){
+	try {
+		if(process.env.NODE_ENV == 'dev'){
+			default_snippets = yaml.load(fs.readFileSync('default_data/dev_mode.yml', 'utf8'));
+		}else{
+			default_snippets = yaml.load(fs.readFileSync('default_data/user_created.yml', 'utf8'));
+		}
+		//add md file contents
+		default_snippets.map((s) => {
+			s.parts.map((p)=>{
+				p.content = fs.readFileSync('default_data/md_contents/' + p.content, 'utf8')
+			});
+		});
+	} catch (e) {
+		console.log(e);
+	}
 }
 
 //TODO: move default data insert here + empty DB setup of useless params
@@ -837,6 +845,8 @@ app.get('/available-languages', passport.authorize('jwt', { session: false }), a
 function init(){
 	db.init().then(() => {
 		console.log(`Starting Sequelize + Express example on port ${port}...`);
+
+		loadDefaultSnippets();
 
 		app.listen(port, () => {
 			console.log(`Express server started on port ${port}. Try some routes, such as '/api/users'.`);
